@@ -1,0 +1,26 @@
+{
+  "name": "HABITUALLY-GOOD-SERVER",
+  "version": "1.0.0",
+  "description": "",
+  "main": "postgrator-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mismyl123/HABITUALLY-GOOD-SERVER.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mismyl123/HABITUALLY-GOOD-SERVER/issues"
+  },
+  "homepage": "https://github.com/mismyl123/HABITUALLY-GOOD-SERVER#readme",
+  "dependencies": {
+    "debug": "^4.2.0"
+  }
+}
