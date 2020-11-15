@@ -1,0 +1,3 @@
+
+DROP TABLE IF EXISTS habits;
+DROP TYPE IF EXISTS star_rating;
