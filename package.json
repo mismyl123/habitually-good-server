@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/mismyl123/HABITUALLY-GOOD-SERVER#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "debug": "^4.2.0",
     "express": "^4.17.1",
     "morgan": "^1.10.0"
