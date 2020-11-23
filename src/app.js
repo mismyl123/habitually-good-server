@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const {
   NODE_ENV
 } = require('./config');
-const errorHandler = require('./middleware/error-handler');
+const errorHandler = require('./error-handler');
 
 const app = express();
 
