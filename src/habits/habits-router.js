@@ -1,62 +1,83 @@
-const express = require('express');
-const NotesService = require('./notes-service');
-const path = require('path');
-const notesRouter = express.Router();
-const jsonParser = express.json();
 
-notesRouter
+const express = require('express')
+const path = require('path')
+const HabitsService = require('./habits-service')
+const { requireAuth } = require('../middleware/jwt-auth')
+
+const habitsRouter = express.Router()
+const jsonBodyParser = express.json()
+
+habitsRouter
   .route('/')
+  .all(requireAuth)
   .get((req, res, next) => {
-    NotesService.getAllNotes(req.app.get('db'))
-      .then(notes => {
-        res.json(notes);
+    HabitsService.getUserHabits (req.app.get('db'), req.user.id)
+      .then(habits => {
+        res.json(HabitsService.serializeHabits(habits))
       })
-      .catch(next);
+      .catch(next)
   })
-  .post(jsonParser, (req, res, next) => {
-    const { notename, folderid, content } = req.body;
-    const newNote = { notename, folderid, content };
+  .post(jsonBodyParser, (req, res, next) => {
+    const { 
+      user_id = req.user.id,
+      text,
+      due_date,
+      reward,
+      xp
+    } = req.body
+    const newHabit = { user_id, text, due_date, reward, xp }
 
-    NotesService.insertNote(req.app.get('db'), newNote)
-      .then(note => {
+    for (const [key, value] of Object.entries(newHabit)) {
+      if (value == null) {
+        return res.status(400).json({
+          error: `Missing '${key}' in request body`
+        })
+      }
+    }
+
+    HabitsService.insertNewHabit(req.app.get('db'), newHabit)
+      .then(habits => {
         res
           .status(201)
-          .location(path.posix.join(req.originalUrl + `/${note.id}`))
-          .json(note);
+          .location(path.posix.join(req.originalUrl, `/${user_id}`))
+          .json(HabitsService.serializeHabits(habits))
       })
-      .catch(next);
-  });
+      .catch(next)
+  })
 
-notesRouter
-  .route('/:note_id')
-  .all((req, res, next) => {
-    NotesService.getById(req.app.get('db'), req.params.note_id)
-      .then(note => {
-        if (!note) {
-          return res.status(404).json({
-            error: { message: "Note doesn't exists" },
-          });
-        }
-        res.note = note;
-        next();
-      })
-      .catch(next);
-  })
-  .get((req, res, next) => {
-    res.json({
-      id: res.note.id,
-      notename: res.note.name,
-      modified: res.note.modified,
-      folderid: res.note.folderid,
-      content: res.note.content,
-    });
-  })
+habitsRouter
+  .route('/:habits_id')
+  .all(checkHabitsExists)
+  .all(requireAuth)
   .delete((req, res, next) => {
-    NotesService.deleteNote(req.app.get('db'), req.params.note_id)
+    HabitsService.deleteHabit(
+      req.app.get('db'),
+      req.params.habits_id
+    )
       .then(() => {
-        res.status(204).end();
+        res.status(204).end()
       })
-      .catch(next);
-  });
+      .catch(next)
+  })
 
-module.exports = notesRouter;
+async function checkHabitsExists(req, res, next) {
+  try {
+    const habits = await HabitsService.getById(
+      req.app.get('db'),
+      req.params.habits_id
+    )
+
+    if(!habits) {
+      return res.status(404).json({
+        error: 'Habit does not exist'
+      })
+    }
+
+    res.habits = habits
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+module.exports = habitsRouter
