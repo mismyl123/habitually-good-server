@@ -1,4 +1,3 @@
-
 'use strict'
 
 require('dotenv').config()
@@ -11,6 +10,7 @@ const { NODE_ENV } = require('./config')
 const habitsRouter = require('./habits/habits-router')
 const usersRouter = require('./users/users-router')
 const authRouter = require('./auth/auth-router')
+const rewardsRouter = require('./rewards/rewards-router')
 
 const app = express()
 app.use(express.json())
@@ -24,11 +24,12 @@ app.use(helmet())
 app.use('/api/users', usersRouter)
 app.use('/api/habits', habitsRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/rewards', rewardsRouter)
 
 app.use('/', (req, res) => {
   res.send(`
     <h1>Habitually Good Server</h1>
-    <h2>This is the backend server for <a href='https://backburner.now.sh'>BackBurner</a></h2>
+    <h2>This is the backend server for <a href=''>Habitually Good</a></h2>
     <h4>"Habitually Good is a task management service that motivates you by allowing you to turn your life into an RPG"</h4>
     <br/><br/>
     <h2>You probably did not mean to come here...</h2>

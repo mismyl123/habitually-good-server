@@ -1,4 +1,3 @@
-
 const express = require('express')
 const path = require('path')
 const HabitsService = require('./habits-service')
@@ -11,7 +10,7 @@ habitsRouter
   .route('/')
   .all(requireAuth)
   .get((req, res, next) => {
-    HabitsService.getUserHabits (req.app.get('db'), req.user.id)
+    SabitsService.getUserHabits(req.app.get('db'), req.user.id)
       .then(habits => {
         res.json(HabitsService.serializeHabits(habits))
       })
@@ -23,11 +22,11 @@ habitsRouter
       text,
       due_date,
       reward,
-      xp
+      points
     } = req.body
-    const newHabit = { user_id, text, due_date, reward, xp }
+    const newHabits = { user_id, text, due_date, reward, points }
 
-    for (const [key, value] of Object.entries(newHabit)) {
+    for (const [key, value] of Object.entries(newHabits)) {
       if (value == null) {
         return res.status(400).json({
           error: `Missing '${key}' in request body`
@@ -35,7 +34,7 @@ habitsRouter
       }
     }
 
-    HabitsService.insertNewHabit(req.app.get('db'), newHabit)
+    HabitsService.insertNewHabits(req.app.get('db'), newHabits)
       .then(habits => {
         res
           .status(201)
@@ -45,12 +44,12 @@ habitsRouter
       .catch(next)
   })
 
-habitsRouter
+  habitsRouter
   .route('/:habits_id')
   .all(checkHabitsExists)
   .all(requireAuth)
   .delete((req, res, next) => {
-    HabitsService.deleteHabit(
+    HabitsService.deleteHabits(
       req.app.get('db'),
       req.params.habits_id
     )

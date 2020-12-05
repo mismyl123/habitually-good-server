@@ -38,8 +38,8 @@ describe('Users Endpoints', function() {
             expect(res.body.username).to.eql(testUser.username)
             expect(res.body.first_name).to.eql(testUser.first_name)
             expect(res.body.level).to.eql(testUser.level)
-            expect(res.body.xp).to.eql(testUser.xp)
-            expect(res.body.xp_to_next_level).to.eql(testUser.xp_to_next_level)
+            expect(res.body.points).to.eql(testUser.points)
+            expect(res.body.points_to_next_level).to.eql(testUser.points_to_next_level)
             const expectedDate = new Date(testUser.date_joined).toLocaleString()
             const actualDate = new Date(res.body.date_joined).toLocaleString()
             expect(actualDate).to.eql(expectedDate)
@@ -174,8 +174,8 @@ describe('Users Endpoints', function() {
             expect(res.body.first_name).to.eql(newUser.first_name)
             expect(res.body).to.not.have.property('password')
             expect(res.body.level).to.eql(0)
-            expect(res.body.xp).to.eql(0)
-            expect(res.body.xp_to_next_level).to.eql(500)
+            expect(res.body.points).to.eql(0)
+            expect(res.body.points_to_next_level).to.eql(500)
             expect(res.headers.location).to.eql('/api/users')
             const expectedDate = new Date().toLocaleDateString()
             const actualDate = new Date(
@@ -211,7 +211,7 @@ describe('Users Endpoints', function() {
   describe(`PATCH /api/users`, () => {
     beforeEach('insert user', () => helpers.seedUser(db, testUser))
 
-    it(`responds with 400 when missing 'gained_xp' in request body`, () => {
+    it(`responds with 400 when missing 'gained_points' in request body`, () => {
       const updateData = {
         missing: 'field'
       }
@@ -220,12 +220,12 @@ describe('Users Endpoints', function() {
         .patch('/api/users')
         .set('Authorization', helpers.makeAuthHeader(testUser))
         .send(updateData)
-        .expect(400, { error: `Request body must contain 'gained_xp'` })
+        .expect(400, { error: `Request body must contain 'gained_points'` })
     })
 
-    it(`Gained XP: responds with 200 and updated user xp`, () => {
+    it(`Gained Points: responds with 200 and updated user poimts`, () => {
       const updateData = {
-        gained_xp: 100
+        gained_poimts: 100
       }
 
       return supertest(app)
@@ -237,7 +237,7 @@ describe('Users Endpoints', function() {
           expect(res.body).to.have.property('id')
           expect(res.body.username).to.eql(testUser.username)
           expect(res.body.first_name).to.eql(testUser.first_name)
-          expect(res.body.xp).to.eql(testUser.xp + updateData.gained_xp)
+          expect(res.body.poimts).to.eql(testUser.poimts + updateData.gained_poimts)
           const expectedDate = new Date(
             testUser.date_joined
           ).toLocaleDateString()
@@ -246,21 +246,21 @@ describe('Users Endpoints', function() {
         })
         .expect(res =>
           db
-            .from('backburner_users')
+            .from('habitually_users')
             .select('*')
             .where({ id: res.body.id })
             .first()
             .then(row => {
               expect(row.username).to.eql(testUser.username)
               expect(row.first_name).to.eql(testUser.first_name)
-              expect(row.xp).to.eql(testUser.xp + updateData.gained_xp)
+              expect(row.points).to.eql(testUser.poimts + updateData.gained_poimts)
             })
         )
     })
 
-    it(`Gained XP -> Level Up!: responds with 200 and update user xp, level, and xp_to_next_level`, () => {
+    it(`Gained Points -> Level Up!: responds with 200 and update user points, level, and points_to_next_level`, () => {
       const updateData = {
-        gained_xp: 500
+        gained_poimts: 500
       }
 
       return supertest(app)
@@ -273,15 +273,15 @@ describe('Users Endpoints', function() {
           expect(res.body.username).to.eql(testUser.username)
           expect(res.body.first_name).to.eql(testUser.first_name)
           expect(res.body.level).to.eql(testUser.level + 1)
-          expect(res.body.xp).to.eql(testUser.xp + updateData.gained_xp - testUser.xp_to_next_level)
-          expect(res.body.xp_to_next_level).to.eql(Math.ceil(testUser.xp_to_next_level * 1.1))
+          expect(res.body.poimts).to.eql(testUser.poimts + updateData.gained_poimts - testUser.poimts_to_next_level)
+          expect(res.body.points_to_next_level).to.eql(Math.ceil(testUser.points_to_next_level * 1.1))
           const expectedDate = new Date(testUser.date_joined).toLocaleDateString()
           const actualDate = new Date(res.body.date_joined).toLocaleDateString()
           expect(actualDate).to.eql(expectedDate)
         })
         .expect(res =>
           db
-            .from('backburner_users')
+            .from('habitually_users')
             .select('*')
             .where({ id: res.body.id })
             .first()
@@ -289,8 +289,8 @@ describe('Users Endpoints', function() {
               expect(row.username).to.eql(testUser.username)
               expect(row.first_name).to.eql(testUser.first_name)
               expect(row.level).to.eql(testUser.level + 1)
-              expect(row.xp).to.eql(testUser.xp + updateData.gained_xp - testUser.xp_to_next_level)
-              expect(row.xp_to_next_level).to.eql(Math.ceil(testUser.xp_to_next_level * 1.1))
+              expect(row.points).to.eql(testUser.points + updateData.gained_points - testUser.points_to_next_level)
+              expect(row.points_to_next_level).to.eql(Math.ceil(testUser.points_to_next_level * 1.1))
             })
         )
     })

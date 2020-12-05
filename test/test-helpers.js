@@ -8,52 +8,52 @@ function makeUser() {
     first_name: 'test1',
     password: 'Pa$$w0rd',
     level: 1,
-    xp: 100,
-    xp_to_next_level: 500,
+    points: 100,
+    points_to_next_level: 500,
     date_joined: '2019-01-01'
   }
 }
 
-function makeTasksArray(user) {
+function makeHabitsArray(user) {
   return [
     {
       id: 1,
-      text: 'First Task to do...',
-      due_date: '2019-08-01',
+      text: 'First Habit to do...',
+      due_date: '2020-01-01',
       reward: 'first test reward',
-      xp: 10,
+      points: 10,
       user_id: user.id
     },
     {
       id: 2,
-      text: 'Second Task to do...',
-      due_date: '2019-09-01',
+      text: 'Second Habit to do...',
+      due_date: '2020-02-01',
       reward: 'second test reward',
-      xp: 25,
+      points: 25,
       user_id: user.id
     },
     {
       id: 3,
-      text: 'Third Task to do...',
-      due_date: '2019-10-01',
+      text: 'Third Habit to do...',
+      due_date: '2020-03-01',
       reward: 'third test reward',
-      xp: 50,
+      points: 50,
       user_id: user.id
     },
     {
       id: 4,
-      text: 'Fourth Task to do...',
-      due_date: '2019-11-01',
+      text: 'Fourth Habit to do...',
+      due_date: '2020-04-01',
       reward: 'fourth test reward',
-      xp: 75,
+      points: 75,
       user_id: user.id
     },
     {
       id: 5,
-      text: 'Fifth Task to do...',
-      due_date: '2019-12-01',
+      text: 'Fifth Habit to do...',
+      due_date: '2020-11-01',
       reward: 'fifth test reward',
-      xp: 100,
+      points: 100,
       user_id: user.id
     }
   ]
@@ -79,13 +79,13 @@ function makeRewardsArray(user) {
   ]
 }
 
-function makeExpectedTask(task) {
+function makeExpectedHabits(habits) {
   return {
-    id: task.id,
-    text: task.text,
-    due_date: task.due_date + 'T00:00:00.000Z',
-    reward: task.reward,
-    xp: task.xp.toString()
+    id: habits.id,
+    text: habits.text,
+    due_date: habits.due_date + 'T00:00:00.000Z',
+    reward: habits.reward,
+    points: habits.points.toString()
   }
 }
 
@@ -97,26 +97,26 @@ function makeExpectedReward(reward, user) {
   }
 }
 
-function makeMaliciousTask(user) {
-  const maliciousTask = {
+function makeMaliciousHabits(user) {
+  const maliciousHabits = {
     id: 1,
     text: 'Naughty naughty very naughty <script>alert("xss");</script>',
-    due_date: '2019-08-01',
+    due_date: '2020-12-01',
     reward:
       'Bad image <img src="https://url.to.file.which/does-not.exist" onerror="alert(document.cookie);">. But not <strong>all</strong> bad.',
-    xp: 100,
+    points: 100,
     user_id: user.id
   }
 
-  const expectedTask = {
-    ...makeExpectedTask(maliciousTask),
+  const expectedHabits = {
+    ...makeExpectedHabits(maliciousHabits),
     text: 'Naughty naughty very naughty &lt;script&gt;alert("xss");&lt;/script&gt;',
     reward: `Bad image <img src="https://url.to.file.which/does-not.exist">. But not <strong>all</strong> bad.`
   }
 
   return {
-    maliciousTask,
-    expectedTask
+    maliciousHabits,
+    expectedHabits
   }
 }
 
@@ -145,20 +145,20 @@ function seedUser(db, user) {
   }
 
   return db
-    .into('backburner_users')
+    .into('habitually_users')
     .insert(preppedUser)
     .then(() =>
-      db.raw(`SELECT setval('backburner_users_id_seq', ?)`, [user.id])
+      db.raw(`SELECT setval('habitually_users_id_seq', ?)`, [user.id])
     )
 }
 
-function seedTasks(db, user, tasks) {
+function seedHabits(db, user, habits) {
   return db.transaction(async trx => {
     await seedUser(trx, user)
-    await trx.into('backburner_tasks').insert(tasks)
+    await trx.into('habitually_habits').insert(habits)
 
-    await trx.raw(`SELECT setval('backburner_tasks_id_seq', ?)`, [
-      tasks[tasks.length - 1].id
+    await trx.raw(`SELECT setval('habitually_habits_id_seq', ?)`, [
+      habits[habits.length - 1].id
     ])
   })
 }
@@ -166,32 +166,32 @@ function seedTasks(db, user, tasks) {
 function seedRewards(db, user, rewards) {
   return db.transaction(async trx => {
     await seedUser(trx, user)
-    await trx.into('backburner_rewards').insert(rewards)
+    await trx.into('habitually_rewards').insert(rewards)
 
-    await trx.raw(`SELECT setval('backburner_rewards_id_seq', ?)`, [
+    await trx.raw(`SELECT setval('habitually_rewards_id_seq', ?)`, [
       rewards[rewards.length - 1].id
     ])
   })
 }
 
-function seedMaliciousTask(db, user, task) {
+function seedMaliciousHabits(db, user, habits) {
   return seedUser(db, user).then(() =>
-    db.into('backburner_tasks').insert([task])
+    db.into('habitually_habits').insert([habits])
   )
 }
 
 function seedMaliciousReward(db, user, reward) {
   return seedUser(db, user).then(() =>
-    db.into('backburner_rewards').insert([reward])
+    db.into('habitually_rewards').insert([reward])
   )
 }
 
 function cleanTables(db) {
   return db.raw(
     `TRUNCATE
-      backburner_users,
-      backburner_tasks,
-      backburner_rewards
+      habitually_users,
+      habitually_habits,
+      habitually_rewards
       RESTART IDENTITY CASCADE;`
   )
 }
@@ -207,16 +207,16 @@ function makeAuthHeader(user, secret = process.env.JWT_SECRET) {
 
 module.exports = {
   makeUser,
-  makeTasksArray,
+  makeHabitsArray,
   makeRewardsArray,
-  makeExpectedTask,
+  makeExpectedHabits,
   makeExpectedReward,
-  makeMaliciousTask,
+  makeMaliciousHabits,
   makeMaliciousReward,
   seedUser,
-  seedTasks,
+  seedHabits,
   seedRewards,
-  seedMaliciousTask,
+  seedMaliciousHabits,
   seedMaliciousReward,
   cleanTables,
   makeAuthHeader

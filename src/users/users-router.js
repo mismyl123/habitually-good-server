@@ -65,29 +65,29 @@ usersRouter
       .catch(next)
   })
   .patch(requireAuth, jsonBodyParser, (req, res, next) => {
-    const { username = req.user.username, gained_xp } = req.body
+    const { username = req.user.username, gained_points } = req.body
 
-    if(gained_xp == null) {
+    if(gained_points == null) {
       return res.status(400).json({
-        error: `Request body must contain 'gained_xp'`
+        error: `Request body must contain 'gained_points'`
       })
     }
 
     UsersService.getByUsername(req.app.get('db'), username)
       .then(user => {
-        let { xp, xp_to_next_level, level } = user
-        const totalXp = xp + gained_xp
-        const diffOfXp = xp_to_next_level - totalXp
+        let { points, points_to_next_level, level } = user
+        const totalPoints = points + gained_points
+        const diffOfPoints = points_to_next_level - totalPoints
         
-        if(diffOfXp <= 0) {
-          xp = Math.abs(diffOfXp)
-          xp_to_next_level = Math.ceil(xp_to_next_level * 1.1)
+        if(diffOfPoints <= 0) {
+          points = Math.abs(diffOfPoints)
+          points_to_next_level = Math.ceil(points_to_next_level * 1.1)
           level += 1
         } else {
-          xp = totalXp
+          points = totalPoints
         }
 
-        const fieldsToUpdate = { xp, xp_to_next_level, level }
+        const fieldsToUpdate = { points, points_to_next_level, level }
         UsersService.updateUser(
           req.app.get('db'),
           req.user.id,

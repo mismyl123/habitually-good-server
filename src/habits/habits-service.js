@@ -1,24 +1,23 @@
-
 const xss = require('xss')
 const Treeize = require('treeize')
 
 const HabitsService = {
   getById(db, habits_id) {
     return db
-      .from('habituallygood_habits')
+      .from('habitually_habits')
       .where('id', habits_id)
       .first()
   },
 
-  getHabitsList(db, user_id) {
+  getUserHabits(db, user_id) {
     return db
-      .from('habituallygood_habits')
+      .from('habitually_habits')
       .select(
         'id',
         'text',
         'due_date',
         'reward',
-        'xp',
+        'points',
       )
       .where(
         'user_id', user_id
@@ -26,20 +25,20 @@ const HabitsService = {
       .orderBy('due_date')
   },
 
-  insertNewHabit(db, newHabit) {
+  insertNewHabits(db, newHabits) {
     return db
-      .insert(newHabit)
-      .into('habituallygood_habits')
+      .insert(newHabits)
+      .into('habitually_habits')
       .returning('*')
-      .then(([habits]) => habit)
-      .then(habit =>
-        TasksService.getById(db, habit.id)
+      .then(([habits]) => habits)
+      .then(habits =>
+        HabitsService.getById(db, habits.id)
       )
   },
 
   deleteHabits(db, habitsID) {
     return db
-      .from('habituallygood_habits')
+      .from('habitually_habits')
       .where('id', habitsID)
       .delete()
   },
@@ -59,7 +58,7 @@ const HabitsService = {
       text: xss(habitsData.text),
       due_date: habitsData.due_date,
       reward: xss(habitsData.reward),
-      xp: habitsData.xp,
+      points: habitsData.points,
     }
   }
 }

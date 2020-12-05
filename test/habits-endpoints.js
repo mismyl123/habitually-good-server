@@ -6,7 +6,7 @@ describe('Habits Endpoints', function() {
   let db
 
   const testUser = helpers.makeUser()
-  const testHabits = helpers.makeHabitsArray(testUser)
+  const testTasks = helpers.makeHabitsArray(testUser)
 
   before('make knex instance', () => {
     db = knex({
@@ -39,25 +39,25 @@ describe('Habits Endpoints', function() {
         helpers.seedHabits(db, testUser, testHabits)
       )
 
-      it(`responds with 200 and all of the user's tasks`, () => {
+      it(`responds with 200 and all of the user's habits`, () => {
         const expectedHabits = testHabits.map(habits =>
-          helpers.makeExpectedTask(habits)
+          helpers.makeExpectedHabits(habits)
         )
 
         return supertest(app)
           .get('/api/habits')
           .set('Authorization', helpers.makeAuthHeader(testUser))
-          .expect(200, expectedTasks)
+          .expect(200, expectedHabits)
       })
     })
 
-    context(`Given an XSS attack task`, () => {
-      const { maliciousHabit, expectedHabit } = helpers.makeMaliciousHabit(
+    context(`Given an XSS attack habit`, () => {
+      const { maliciousHabits, expectedHabits } = helpers.makeMaliciousHabits(
         testUser
       )
 
       beforeEach('insert malicious habit', () => {
-        return helpers.seedMaliciousHabit(db, testUser, maliciousHabit)
+        return helpers.seedMaliciousHabits(db, testUser, maliciousHabits)
       })
 
       it('removes XSS attack content', () => {
@@ -76,65 +76,65 @@ describe('Habits Endpoints', function() {
   describe(`POST /api/habits`, () => {
     beforeEach('insert habits', () => helpers.seedHabits(db, testUser, testHabits))
 
-    it(`creates a habit, responds with 201 and the new habit`, function() {
-      const newHabit = {
+    it(`creates a habit, responds with 201 and the new task`, function() {
+      const newHabits = {
         text: 'New Habit to do...',
         due_date: '2020-01-01',
         reward: 'new test reward',
-        xp: 100,
+        points: 100,
         user_id: testUser.id
       }
 
       return supertest(app)
         .post('/api/habits')
         .set('Authorization', helpers.makeAuthHeader(testUser))
-        .send(newHabit)
+        .send(newHabits)
         .expect(201)
         .expect(res => {
           expect(res.body).to.have.property('id')
-          expect(res.body.text).to.eql(newTask.text)
-          expect(res.body.reward).to.eql(newTask.reward)
-          expect(Number(res.body.xp)).to.eql(newTask.xp)
-          const expectedDate = new Date(newTask.due_date).toLocaleString()
+          expect(res.body.text).to.eql(newHabits.text)
+          expect(res.body.reward).to.eql(newHabits.reward)
+          expect(Number(res.body.points)).to.eql(newHabits.points)
+          const expectedDate = new Date(newHabits.due_date).toLocaleString()
           const actualDate = new Date(res.body.due_date).toLocaleString()
           expect(actualDate).to.eql(expectedDate)
         })
         .expect(res =>
           db
-            .from('backburner_tasks')
+            .from('habitually_habits')
             .select('*')
             .where({ id: res.body.id })
             .first()
             .then(row => {
-              expect(row.text).to.eql(newTask.text)
-              expect(row.text).to.eql(newTask.text)
-              expect(row.reward).to.eql(newTask.reward)
-              expect(Number(row.xp)).to.eql(newTask.xp)
-              const expectedDate = new Date(newTask.due_date).toLocaleString()
+              expect(row.text).to.eql(newHabits.text)
+              expect(row.text).to.eql(newHabits.text)
+              expect(row.reward).to.eql(newHabits.reward)
+              expect(Number(row.points)).to.eql(newHabits.points)
+              const expectedDate = new Date(newHabits.due_date).toLocaleString()
               const actualDate = new Date(row.due_date).toLocaleString()
               expect(actualDate).to.eql(expectedDate)
             })
         )
     })
 
-    const requiredFields = [ 'text', 'due_date', 'reward', 'xp' ]
+    const requiredFields = [ 'text', 'due_date', 'reward', 'points' ]
 
     requiredFields.map(field => {
-      const newTask = {
-        text: 'New Task to do...',
+      const newHabits = {
+        text: 'New Habit to do...',
         due_date: '2020-01-01',
         reward: 'new test reward',
-        xp: 100,
+        points: 100,
         user_id: testUser.id
       }
 
       it(`responds with 400 and 'Missing '${field}' in request body'`, () => {
-        delete newTask[field]
+        delete newHabits[field]
 
         return supertest(app)
-          .post('/api/tasks')
+          .post('/api/habits')
           .set('Authorization', helpers.makeAuthHeader(testUser))
-          .send(newTask)
+          .send(newHabits)
           .expect(400, { error: `Missing '${field}' in request body` })
       })
     })

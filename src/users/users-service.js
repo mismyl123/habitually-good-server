@@ -7,14 +7,14 @@ const REGEX_UPPER_LOWER_NUMBER_SPECIAL = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*
 const UsersService = {
   getByUsername(db, username) {
     return db
-      .from('habituallygood_habits')
+      .from('habitually_users')
       .where({ username })
       .first()
   },
 
   hasUserWithUserName(db, username) {
     return db
-      .from('habituallygood_habits')
+      .from('habitually_users')
       .where({ username })
       .first()
       .then(user => !!user)
@@ -23,13 +23,13 @@ const UsersService = {
   insertNewUser(db, newUser) {
     return db
       .insert(newUser)
-      .into('habituallygood_habits')
+      .into('habitually_users')
       .returning('*')
       .then(([user]) => user)
   },
 
   updateUser(db, id, newUserFields) {
-    return db('habituallygood_habits')
+    return db('habitually_users')
       .where('id', id)
       .update(newUserFields)
       .returning('*')
@@ -70,8 +70,8 @@ const UsersService = {
       username: xss(userData.username),
       first_name: xss(userData.first_name),
       level: userData.level,
-      xp: userData.xp,
-      xp_to_next_level: userData.xp_to_next_level,
+      points: userData.points,
+      points_to_next_level: userData.points_to_next_level,
       date_joined: userData.date_joined
     }
   }
