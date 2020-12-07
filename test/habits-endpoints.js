@@ -6,7 +6,7 @@ describe('Habits Endpoints', function() {
   let db
 
   const testUser = helpers.makeUser()
-  const testTasks = helpers.makeHabitsArray(testUser)
+  const testHabits = helpers.makeHabitsArray(testUser)
 
   before('make knex instance', () => {
     db = knex({

@@ -4,7 +4,7 @@ require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
-const corsOptions = require('./cors-whitelist')
+const cors = require('cors');
 const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
 const habitsRouter = require('./habits/habits-router')
@@ -17,24 +17,19 @@ app.use(express.json())
 
 const morganOption = NODE_ENV === 'production' ? 'tiny' : 'dev'
 
-app.use(morgan(morganOption))
-app.use(cors({ origin: corsOptions }))
-app.use(helmet())
+app.use(express.static('public'))
+app.use(morgan(morganOption));
+app.use(helmet());
+app.use(cors());
+app.use('/users', usersRouter)
+app.use('/habits', habitsRouter)
+app.use('/auth', authRouter)
+app.use('/rewards', rewardsRouter)
 
-app.use('/api/users', usersRouter)
-app.use('/api/habits', habitsRouter)
-app.use('/api/auth', authRouter)
-app.use('/api/rewards', rewardsRouter)
+app.get('/', (req, res)=>{
+	res.status(200).end();
+});
 
-app.use('/', (req, res) => {
-  res.send(`
-    <h1>Habitually Good Server</h1>
-    <h2>This is the backend server for <a href=''>Habitually Good</a></h2>
-    <h4>"Habitually Good is a task management service that motivates you by allowing you to turn your life into an RPG"</h4>
-    <br/><br/>
-    <h2>You probably did not mean to come here...</h2>
-  `)
-})
 
 app.use(function errorHandler(error, req, res, next) {
   let response

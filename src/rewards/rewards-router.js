@@ -1,5 +1,5 @@
-
 const express = require('express')
+const xss = require("xss");
 const RewardsService = require('./rewards-service')
 const { requireAuth } = require('../middleware/jwt-auth')
 
