@@ -10,7 +10,7 @@ function makeUser() {
     level: 1,
     points: 100,
     points_to_next_level: 500,
-    date_joined: '2019-01-01'
+    date_joined: '2020-01-01'
   }
 }
 
