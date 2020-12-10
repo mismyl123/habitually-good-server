@@ -12,4 +12,4 @@ CREATE TABLE habitually_users (
 ALTER TABLE habitually_habits
   ADD COLUMN
     user_id INTEGER REFERENCES habitually_users(id)
-    ON DELETE SET NULL;
+    ON DELETE CASCADE NULL;
