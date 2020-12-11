@@ -7,14 +7,14 @@ const knex = require("knex");
 const db = knex({
   client: "pg",
  connection: DATABASE_URL,
-});
+})
 
-const cors = require('cors');
+////const cors = require('cors');
 
-app.use(cors(),
+//app.use(cors());
 
-app.set("db", db),
+app.set("db", db);
 
 app.listen(PORT, () => {
-  console.log(`Server listening at http://localhost:${PORT}`);
-});
+  console.log(`Server listening at http://localhost:${PORT}`)
+})
