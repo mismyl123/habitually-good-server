@@ -1,89 +1,142 @@
+const knex = require('knex')
+const app = require('../src/app')
+const helpers = require('./test-helpers')
 
-const knex = require('knex');
-const app = require('../src/app');
-const config = require('../src/config');
-const supertest = require('supertest');
-const HabitsService = require('../src/habits/habits-service');
+describe('Habits Endpoints', function() {
+  let db
 
-describe(`GET /habits/:habits_id`, () => {
+  const testUser = helpers.makeUser()
+  const testHabits = helpers.makeHabitsArray(testUser)
 
-    function makeHabitsArray() {
-        return [
-            {
-                id: 1,
-                text: 'New Habit',
-                due_date: "2020-12-01",
-                
-              }
-        ]
-    };
-
-    function makeUserArray() {
-        return [
-            {
-                id: 2,
-                username: 'testusertest',
-                password: '$2a$12$4NY47Y1BNH8KuWlMNRzFUOhOn578wlcdgRm1bq9eEcdnVi/Mg1yd.'
-            }
-        ]
-    };
-
-   
-    describe(`GET /habits/:habits_id`, () => {
-        let db;
-
-        before('make knex instance', () => {
-            db = knex({
-                client: 'pg',
-                connection: process.env.DATABASE_URL
-            });
-            app.set('db', db)
-        });
-
-        after('disconnect from db', () => db.destroy());
-
-        before('clean the table', () => {
-            db.raw('TRUNCATE habitually_habits RESTART IDENTITY CASCADE;');
-            db.raw('TRUNCATE habitually_users RESTART IDENTITY CASCADE;');
-        });
-
-        afterEach('cleanup', () => {
-            db.raw('TRUNCATE habitually_habits RESTART IDENTITY CASCADE;');
-            db.raw('TRUNCATE habitually_users RESTART IDENTITY CASCADE;');
-        });
-
-        context('Given there are habits in the database', () => {
-            const testHabits = makeHabitsArray();
-            const testUser = makeUserArray();
-            let jwt = '';
-
-            beforeEach('insert user', () => {
-                return db.into('habitually_users').insert(testUser);
-            });
-
-            beforeEach('insert habits', () => {
-                return db.into('habitually_habits').insert(testHabits);
-            });
-
-            beforeEach('signin and get jwt', () => {
-                return supertest(app)
-                    .post('/auth/signin')
-                    .send({ username: 'testusertest', password: 'testusertestpw' })
-                    .set('Accept', 'application/json')
-                    .then(res => {
-                        jwt = res.body.authToken
-                    })
-            });
-
-            it('responds with 200 and a single habit', () => {
-                return supertest(app)
-                    .get('/habits')
-                    .set('Authorization', `Bearer ${jwt}`)
-                    .expect(res => {
-                        expect(res.body.name).to.eql(testHabits[0].name);
-                        expect(res.body).to.have.property('id');
-                    })
-            })
-        })
+  before('make knex instance', () => {
+    db = knex({
+      client: 'pg',
+      connection: process.env.TEST_DATABASE_URL
     })
+    app.set('db', db)
+  })
+
+  after('disconnect from db', () => db.destroy())
+
+  before('cleanup', () => helpers.cleanTables(db))
+
+  afterEach('cleanup', () => helpers.cleanTables(db))
+
+  describe(`GET /api/habits`, () => {
+    context(`Given no habits`, () => {
+      beforeEach(() => helpers.seedUser(db, testUser))
+
+      it(`responds with 200 and empty response`, () => {
+        return supertest(app)
+          .get('/api/habits')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, [])
+      })
+    })
+
+    context(`Given there are habits`, () => {
+      beforeEach('insert habits', () =>
+        helpers.seedTasks(db, testUser, testHabits)
+      )
+
+      it(`responds with 200 and all of the user's habits`, () => {
+        const expectedHabits = testHabits.map(habits =>
+          helpers.makeExpectedHabits(habits)
+        )
+
+        return supertest(app)
+          .get('/api/habits')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200, expectedHabits)
+      })
+    })
+
+    context(`Given an XSS attack task`, () => {
+      const { maliciousHabits, expectedhabits } = helpers.makeMaliciousHabits(
+        testUser
+      )
+
+      beforeEach('insert malicious habits', () => {
+        return helpers.seedMaliciousHabits(db, testUser, maliciousHabits)
+      })
+
+      it('removes XSS attack content', () => {
+        return supertest(app)
+          .get(`/api/habits`)
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .expect(200)
+          .expect(res => {
+            expect(res.body[0].text).to.eql(expectedHabits.text)
+            expect(res.body[0].reward).to.eql(expectedHabits.reward)
+          })
+      })
+    })
+  })
+
+  describe(`POST /api/habits`, () => {
+    beforeEach('insert habits', () => helpers.seedHabits(db, testUser, testHabits))
+
+    it(`creates a habits, responds with 201 and the new task`, function() {
+      const newHabits = {
+        text: 'New Habit to do...',
+        due_date: '2020-11-01',
+        reward: 'new test reward',
+        points: 100,
+        user_id: testUser.id
+      }
+
+      return supertest(app)
+        .post('/api/habits')
+        .set('Authorization', helpers.makeAuthHeader(testUser))
+        .send(newTask)
+        .expect(201)
+        .expect(res => {
+          expect(res.body).to.have.property('id')
+          expect(res.body.text).to.eql(newHabits.text)
+          expect(res.body.reward).to.eql(newHabits.reward)
+          expect(Number(res.body.points)).to.eql(newHabits.points)
+          const expectedDate = new Date(newTask.due_date).toLocaleString()
+          const actualDate = new Date(res.body.due_date).toLocaleString()
+          expect(actualDate).to.eql(expectedDate)
+        })
+        .expect(res =>
+          db
+            .from('habitually_habits')
+            .select('*')
+            .where({ id: res.body.id })
+            .first()
+            .then(row => {
+              expect(row.text).to.eql(newHabits.text)
+              expect(row.text).to.eql(newHabits.text)
+              expect(row.reward).to.eql(newHabits.reward)
+              expect(Number(row.points)).to.eql(newHabits.p)
+              const expectedDate = new Date(newHabits.due_date).toLocaleString()
+              const actualDate = new Date(row.due_date).toLocaleString()
+              expect(actualDate).to.eql(expectedDate)
+            })
+        )
+    })
+
+    const requiredFields = [ 'text', 'due_date', 'reward', 'points' ]
+
+    requiredFields.map(field => {
+      const newHabits = {
+        text: 'New Habit',
+        due_date: '2020-01-01',
+        reward: 'new test reward',
+        points: 100,
+        user_id: testUser.id
+      }
+
+      it(`responds with 400 and 'Missing '${field}' in request body'`, () => {
+        delete newHabits[field]
+
+        return supertest(app)
+          .post('/api/habits')
+          .set('Authorization', helpers.makeAuthHeader(testUser))
+          .send(newHabits)
+          .expect(400, { error: `Missing '${field}' in request body` })
+      })
+    })
+  })
 })

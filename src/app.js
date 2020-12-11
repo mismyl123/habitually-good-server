@@ -1,6 +1,9 @@
+'use strict'
+
 require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
+//const cors = require('cors')
 const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
 const habitsRouter = require('./habits/habits-router')
@@ -8,23 +11,34 @@ const usersRouter = require('./users/users-router')
 const authRouter = require('./auth/auth-router')
 const rewardsRouter = require('./rewards/rewards-router')
 
-const app = express();
+const app = express()
+app.use(express.json())
 
-const morganOption = (NODE_ENV === 'production')
-  ? 'tiny'
-  : 'common';
+const morganOption = NODE_ENV === 'production' ? 'tiny' : 'dev'
 
-app.use(morgan(morganOption));
-app.use(helmet());
-//app.use(cors());
+app.use(morgan(morganOption))
+//app.use(cors({ origin: corsOptions }))
+app.use(helmet())
 
-app.use('/users', usersRouter)
-app.use('/habits', habitsRouter)
-app.use('/auth', authRouter)
-app.use('/rewards', rewardsRouter)
+app.use('/api/users', usersRouter)
+app.use('/api/habits', habitsRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/rewards', rewardsRouter)
+
+app.use('/', (req, res) => {
+  res.send(`
+    <h1>Habitually Good Server</h1>
+
+    <br/><br/>
+  `)
+})
+//trying to fix cors error
+//app.use((req, res, next) => {
+  //res.header("Access-Control-Allow-Origin": "*")
+//}) 
 
 app.use(function errorHandler(error, req, res, next) {
-  let response;
+  let response
   if (NODE_ENV === 'production') {
     response = { error: { message: 'server error' } }
   } else {
