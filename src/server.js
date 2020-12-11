@@ -9,11 +9,11 @@ const db = knex({
  connection: DATABASE_URL,
 });
 
-var cors = require('cors')
+const cors = require('cors');
 
 app.use(cors(),
 
-app.set("db", db);
+app.set("db", db),
 
 app.listen(PORT, () => {
   console.log(`Server listening at http://localhost:${PORT}`);
