@@ -16,20 +16,18 @@ app.use(express.json())
 
 const morganSetting = NODE_ENV === 'production' ? 'tiny' : 'dev'
 
-app.use(morgan(morganSetting))
-//app.use(cors({ origin: corsOptions }))
-app.use(helmet())
+app.use(morgan(morganSetting)),
+app.use(cors()),
+app.use(helmet()),
 
-app.use('/api/users', usersRouter)
-app.use('/api/habits', habitsRouter)
-app.use('/api/auth', authRouter)
-app.use('/api/rewards', rewardsRouter)
+app.use('/api/users', usersRouter),
+app.use('/api/habits', habitsRouter),
+app.use('/api/auth', authRouter),
+app.use('/api/rewards', rewardsRouter),
 
 app.use('/', (req, res) => {
   res.send(`
     <h1>Habitually Good Server</h1>
-
-    <br/><br/>
   `)
 })
 //trying to fix cors error

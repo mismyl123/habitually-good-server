@@ -1,3 +1,5 @@
+https://damp-castle-21568.herokuapp.com/
+
 Node and PostgreSQL Boilerplate app
 How to set it up
    1. Clone this repository to your local machine

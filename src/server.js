@@ -9,6 +9,10 @@ const db = knex({
  connection: DATABASE_URL,
 });
 
+var cors = require('cors')
+
+app.use(cors(),
+
 app.set("db", db);
 
 app.listen(PORT, () => {
