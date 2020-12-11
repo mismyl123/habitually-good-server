@@ -14,9 +14,9 @@ const rewardsRouter = require('./rewards/rewards-router')
 const app = express()
 app.use(express.json())
 
-const morganOption = NODE_ENV === 'production' ? 'tiny' : 'dev'
+const morganSetting = NODE_ENV === 'production' ? 'tiny' : 'dev'
 
-app.use(morgan(morganOption))
+app.use(morgan(morganSetting))
 //app.use(cors({ origin: corsOptions }))
 app.use(helmet())
 

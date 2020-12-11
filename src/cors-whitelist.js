@@ -3,7 +3,7 @@
 const whitelist = [
   'http://localhost:3000',
   'http://localhost:8080',
-  'https://serene-sierra-18729.herokuapp.com'
+  ''
 ]
 
 const originGenerator = function(origin, callback) {
