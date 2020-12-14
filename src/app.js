@@ -18,8 +18,13 @@ app.use(express.json())
 const morganOption = NODE_ENV === 'production' ? 'tiny' : 'dev'
 
 app.use(morgan(morganOption))
-app.use(cors({ origin: corsOptions }))
 app.use(helmet())
+
+app.use(
+    cors({
+        origin: CLIENT_ORIGIN
+    })
+);
 
 app.use('/api/users', usersRouter),
 app.use('/api/habits', habitsRouter),
