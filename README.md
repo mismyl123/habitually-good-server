@@ -30,8 +30,7 @@ Local/Development Set-up
 1. Clone this repo
 2. Set up database table as habitually:
 
-$ createdb [connection-option...][option...] backburner
-
+$ createdb [connection-option...][option...] habitually
 3. Set up .env
         Must Include:
         NODE_ENV
