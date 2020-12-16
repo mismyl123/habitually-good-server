@@ -31,6 +31,10 @@ Local/Development Set-up
 2. Set up database table as habitually:
 
 $ createdb [connection-option...][option...] habitually
+<<<<<<< HEAD
+=======
+
+>>>>>>> d53d1894787d119932530bc3c22f1d82f07c3bc1
 3. Set up .env
         Must Include:
         NODE_ENV
